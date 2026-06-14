@@ -152,19 +152,21 @@
   </table>
 </div>
 
-<script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 const SUPABASE_URL  = 'https://zkcuxstdzisxdxlmnjmy.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_cTAywh5fVAw7ezMxgyKWXg_lWecLs3i';
 const PIN           = '7634';
 
-const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 // ── PIN ──────────────────────────────────────────────
 let pinValue = '';
-const unlocked = sessionStorage.getItem('unlocked') === '1';
-if (unlocked) showDashboard(); else showPin();
+
+window.addEventListener('DOMContentLoaded', function() {
+  const unlocked = sessionStorage.getItem('unlocked') === '1';
+  if (unlocked) showDashboard(); else showPin();
+});
 
 window.pinKey = function(k) {
   if (pinValue.length >= 4) return;
