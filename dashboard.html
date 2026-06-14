@@ -637,6 +637,294 @@ window.exportCsv = async function() {
 
   .cards {
     display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .card {
+    background: #f5f5f7; border-radius: 1rem;
+    padding: 0.75rem 0.25rem; text-align: center; border: 1.5px solid transparent;
+  }
+  .card.happy   { border-color: #34c759; }
+  .card.neutral { border-color: #ff9f0a; }
+  .card.unhappy { border-color: #ff3b30; }
+  .card.total-card { border-color: #636366; }
+  .emoji { font-size: 2rem; font-family: "Apple Color Emoji","Segoe UI Emoji",sans-serif; }
+  .count { font-size: 2.5rem; font-weight: 700; line-height: 1.1; margin-top: 0.2rem; }
+  .card.happy   .count { color: #34c759; }
+  .card.neutral .count { color: #ff9f0a; }
+  .card.unhappy .count { color: #ff3b30; }
+  .card.total-card .count { color: #636366; }
+  .label { font-size: 0.8rem; color: #666; margin-top: 0.3rem; }
+
+  .section-title { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.6rem; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; min-width: 480px; }
+  th { text-align: left; padding: 0.5rem 0.75rem; font-weight: 600; color: #8e8e93;
+       font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid #e5e5ea; }
+  td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #f2f2f7; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.8rem; font-weight: 500;
+  }
+  .badge.happy   { background: #d1fae5; color: #15803d; }
+  .badge.neutral { background: #fef3c7; color: #b45309; }
+  .badge.unhappy { background: #fee2e2; color: #b91c1c; }
+  .comment-text { color: #555; font-style: italic; font-size: 0.82rem; }
+  .no-comment   { color: #d1d1d6; font-size: 0.8rem; }
+  .updated { color: #aaa; font-size: 0.75rem; margin-bottom: 1.25rem; }
+
+  @media (min-width: 600px) {
+    #dashboard { padding: 2rem 2.5rem; }
+    h1 { font-size: 1.5rem; }
+    .cards { grid-template-columns: repeat(4, 1fr); }
+    .card { padding: 1.5rem 2rem; }
+    .emoji { font-size: 2.4rem; }
+    .count { font-size: 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div id="pin-screen">
+  <h2>Kundetilfredshet</h2>
+  <p>Skriv inn PIN-kode</p>
+  <div class="pin-dots">
+    <div class="pin-dot" id="d0"></div>
+    <div class="pin-dot" id="d1"></div>
+    <div class="pin-dot" id="d2"></div>
+    <div class="pin-dot" id="d3"></div>
+  </div>
+  <div class="pin-error" id="pin-error"></div>
+  <div class="pin-grid">
+    <button class="pin-btn" onclick="pinKey('1')">1</button>
+    <button class="pin-btn" onclick="pinKey('2')">2</button>
+    <button class="pin-btn" onclick="pinKey('3')">3</button>
+    <button class="pin-btn" onclick="pinKey('4')">4</button>
+    <button class="pin-btn" onclick="pinKey('5')">5</button>
+    <button class="pin-btn" onclick="pinKey('6')">6</button>
+    <button class="pin-btn" onclick="pinKey('7')">7</button>
+    <button class="pin-btn" onclick="pinKey('8')">8</button>
+    <button class="pin-btn" onclick="pinKey('9')">9</button>
+    <button class="pin-btn" style="visibility:hidden"></button>
+    <button class="pin-btn" onclick="pinKey('0')">0</button>
+    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+  </div>
+</div>
+
+<div id="dashboard">
+  <h1>Kundetilfredshet – Dashboard</h1>
+  <div class="filters">
+    <div class="filter-row">
+      <button id="btn-today"  onclick="setPeriod('today')">I dag</button>
+      <button id="btn-week"   onclick="setPeriod('week')">Uke</button>
+      <button id="btn-month"  onclick="setPeriod('month')">Måned</button>
+      <button id="btn-year"   onclick="setPeriod('year')">År</button>
+      <button class="btn-export" onclick="exportCsv()">⬇ CSV</button>
+    </div>
+    <div class="filter-row-2">
+      <input type="date" id="date-from" onchange="setPeriod('custom')">
+      <span class="sep">–</span>
+      <input type="date" id="date-to"   onchange="setPeriod('custom')">
+    </div>
+  </div>
+  <div class="cards">
+    <div class="card happy">
+      <div class="emoji">😊</div><div class="count" id="happy">–</div><div class="label">Fornøyd</div>
+    </div>
+    <div class="card neutral">
+      <div class="emoji">😐</div><div class="count" id="neutral">–</div><div class="label">Nøytral</div>
+    </div>
+    <div class="card unhappy">
+      <div class="emoji">😞</div><div class="count" id="unhappy">–</div><div class="label">Misfornøyd</div>
+    </div>
+    <div class="card total-card">
+      <div class="emoji">📊</div><div class="count" id="total">–</div><div class="label">Totalt</div>
+    </div>
+  </div>
+  <p class="updated" id="updated">Laster…</p>
+  <div class="section-title">Svar</div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tidspunkt</th><th>Svar</th><th>Kommentar</th></tr></thead>
+      <tbody id="log"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL  = 'https://zkcuxstdzisxdxlmnjmy.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_cTAywh5fVAw7ezMxgyKWXg_lWecLs3i';
+const PIN           = '7634';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── PIN ──────────────────────────────────────────────
+let pinValue = '';
+
+window.addEventListener('DOMContentLoaded', function() {
+  const unlocked = sessionStorage.getItem('unlocked') === '1';
+  if (unlocked) showDashboard(); else showPin();
+});
+
+window.pinKey = function(k) {
+  if (pinValue.length >= 4) return;
+  pinValue += k;
+  updateDots();
+  if (pinValue.length === 4) checkPin();
+};
+window.pinDel = function() { pinValue = pinValue.slice(0, -1); updateDots(); };
+
+function updateDots() {
+  for (let i = 0; i < 4; i++)
+    document.getElementById('d' + i).classList.toggle('filled', i < pinValue.length);
+}
+
+function checkPin() {
+  if (pinValue === PIN) {
+    sessionStorage.setItem('unlocked', '1');
+    showDashboard();
+  } else {
+    document.getElementById('pin-error').textContent = 'Feil PIN-kode';
+    pinValue = ''; updateDots();
+    setTimeout(() => document.getElementById('pin-error').textContent = '', 2000);
+  }
+}
+
+function showPin() {
+  document.getElementById('pin-screen').style.display = 'flex';
+  document.getElementById('dashboard').style.display  = 'none';
+}
+
+function showDashboard() {
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display  = 'block';
+  setPeriod('today');
+}
+
+// ── Dashboard ─────────────────────────────────────────
+const labels = { happy: 'Fornøyd', neutral: 'Nøytral', unhappy: 'Misfornøyd' };
+const emojis = { happy: '😊', neutral: '😐', unhappy: '😞' };
+let currentFrom = 0, currentTo = 0;
+
+function startOf(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); }
+function endOf(d)   { return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999).getTime(); }
+function startOfWeek(d) {
+  const day = d.getDay() === 0 ? 6 : d.getDay() - 1;
+  return startOf(new Date(d.getFullYear(), d.getMonth(), d.getDate() - day));
+}
+
+window.setPeriod = function(p) {
+  const now = new Date();
+  if      (p === 'today')  { currentFrom = startOf(now); currentTo = endOf(now); }
+  else if (p === 'week')   { currentFrom = startOfWeek(now); currentTo = endOf(now); }
+  else if (p === 'month')  { currentFrom = new Date(now.getFullYear(), now.getMonth(), 1).getTime(); currentTo = endOf(now); }
+  else if (p === 'year')   { currentFrom = new Date(now.getFullYear(), 0, 1).getTime(); currentTo = endOf(now); }
+  else if (p === 'custom') {
+    const f = document.getElementById('date-from').value;
+    const t = document.getElementById('date-to').value;
+    if (!f || !t) return;
+    currentFrom = startOf(new Date(f)); currentTo = endOf(new Date(t));
+  }
+  document.querySelectorAll('.filters button').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('btn-' + p);
+  if (btn) btn.classList.add('active');
+  refresh();
+};
+
+function fmt(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('nb-NO', { day:'2-digit', month:'2-digit', year:'numeric' })
+    + ' ' + d.toLocaleTimeString('nb-NO', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+}
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function refresh() {
+  const { data, error } = await sb.from('responses')
+    .select('id, rating, created_at, comment')
+    .gte('created_at', currentFrom)
+    .lte('created_at', currentTo)
+    .order('created_at', { ascending: false })
+    .limit(500);
+
+  if (error) { console.error(error); return; }
+
+  const counts = { happy: 0, neutral: 0, unhappy: 0 };
+  for (const r of data) counts[r.rating] = (counts[r.rating] || 0) + 1;
+
+  document.getElementById('happy').textContent   = counts.happy;
+  document.getElementById('neutral').textContent = counts.neutral;
+  document.getElementById('unhappy').textContent = counts.unhappy;
+  document.getElementById('total').textContent   = data.length;
+  document.getElementById('updated').textContent = 'Oppdatert ' + new Date().toLocaleTimeString('nb-NO');
+
+  document.getElementById('log').innerHTML = data.map(r => `
+    <tr>
+      <td>${fmt(r.created_at)}</td>
+      <td><span class="badge ${r.rating}">${emojis[r.rating]} ${labels[r.rating]}</span></td>
+      <td>${r.comment ? `<span class="comment-text">${esc(r.comment)}</span>` : '<span class="no-comment">–</span>'}</td>
+    </tr>`).join('');
+
+  window._currentData = data;
+}
+
+window.exportCsv = async function() {
+  const { data } = await sb.from('responses')
+    .select('rating, created_at, comment')
+    .order('created_at', { ascending: false })
+    .limit(100000);
+
+  const lines = ['Dato,Klokkeslett,Svar,Kommentar'];
+  for (const r of data) {
+    const dt = new Date(r.created_at);
+    const dato = `${String(dt.getDate()).padStart(2,'0')}.${String(dt.getMonth()+1).padStart(2,'0')}.${dt.getFullYear()}`;
+    const tid  = `${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}:${String(dt.getSeconds()).padStart(2,'0')}`;
+    const svar = r.rating === 'happy' ? 'Fornøyd' : r.rating === 'neutral' ? 'Nøytral' : 'Misfornøyd';
+    const kommentar = (r.comment || '').replace(/"/g, '""');
+    lines.push(`${dato},${tid},${svar},"${kommentar}"`);
+  }
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const today = new Date();
+  a.download = `kundetilfredshet_${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}.csv`;
+  a.click();
+};
+</script>
+</body>
+</html>
+  #dashboard { display: none; padding: 1.25rem 1rem; }
+  h1 { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.25rem; }
+
+  .filters { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 1.25rem; }
+  .filters button {
+    padding: 0.4rem 0.9rem; border-radius: 999px; border: 1.5px solid #d1d1d6;
+    background: #fff; font-size: 0.85rem; cursor: pointer; color: #1a1a1a;
+    font-family: inherit; transition: all .15s;
+  }
+  .filters button.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .filters input[type=date] {
+    padding: 0.35rem 0.75rem; border-radius: 999px; border: 1.5px solid #d1d1d6;
+    font-size: 0.85rem; font-family: inherit; color: #1a1a1a; cursor: pointer; max-width: 140px;
+  }
+  .filters .sep { color: #d1d1d6; }
+  .filter-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; width: 100%; }
+  .filter-row-2 { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; width: 100%; margin-top: 0.25rem; }
+  .btn-export {
+    padding: 0.4rem 1rem; border-radius: 999px;
+    border: 1.5px solid #34c759; background: #fff; font-size: 0.85rem;
+    cursor: pointer; color: #34c759; font-family: inherit; font-weight: 600;
+    transition: all .15s; display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .btn-export:hover { background: #34c759; color: #fff; }
+
+  .cards {
+    display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.75rem;
     margin-bottom: 1.5rem;
